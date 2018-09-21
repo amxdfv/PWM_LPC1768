@@ -1,0 +1,59 @@
+
+unsigned int DURATION = 0;
+
+#define CMD					InData[3]
+#define CHAN	      InData[4]
+
+#define FREQ_0			InData[5]
+#define FREQ_1			InData[6]
+#define DUTY  			InData[7]
+
+#define LIMIT_0			InData[5]
+#define LIMIT_1			InData[6]
+#define LIMIT_2			InData[7]
+#define LIMIT_3			InData[8]
+
+#define SBIT_CNTEN     0 
+#define SBIT_PWMEN     2
+
+#define SBIT_PWMMR0R   1
+
+#define SBIT_LEN0      0
+#define SBIT_LEN1      1
+#define SBIT_LEN2      2
+#define SBIT_LEN3      3
+#define SBIT_LEN4      4
+
+#define SBIT_PWMENA1   9
+#define SBIT_PWMENA2   10
+#define SBIT_PWMENA3   11
+#define SBIT_PWMENA4   12
+
+#define FREQ_2 (FREQ_0<<8|FREQ_1)
+
+void StartPWM () 
+{
+  
+  LPC_PINCON->PINMODE3 = 0x00000020 ;       
+	LPC_PINCON->PINSEL3 = 0x00000020 ;
+	
+	LPC_PWM1->TCR = (1<<SBIT_CNTEN) | (1<<SBIT_PWMEN);
+	
+	LPC_PWM1->PR  =  0x0;               /* No Prescalar */
+    LPC_PWM1->MCR = (1<<SBIT_PWMMR0R);  /*Reset on PWMMR0, reset TC if it matches MR0 */
+
+	DURATION = 12000000/FREQ_2;
+	
+    LPC_PWM1->MR0 = DURATION;                /* set PWM cycle(Ton+Toff)=100) */
+    LPC_PWM1->MR1 = DURATION/2;                 /* Set 50% Duty Cycle for all four channels */
+		
+		LPC_PWM1->LER = (1<<SBIT_LEN0) | (1<<SBIT_LEN1) ; 
+	  
+		LPC_PWM1->PCR = (1<<SBIT_PWMENA1) ;
+  
+}
+
+void StopPWM ()
+{
+   LPC_PWM1->PCR &=~ (1<<SBIT_PWMENA1);
+}
